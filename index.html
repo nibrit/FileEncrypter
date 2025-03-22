@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Encryption App</title>
+    <style>
+        :root {
+            --bg-color: #1E1E1E;
+            --panel-color: #323232;
+            --text-color: #E0E0E0;
+            --accent-color: #4CAF50;
+            --accent-hover: #3d8c40;
+            --error-color: #f44336;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: var(--panel-color);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            margin: 0;
+            color: var(--accent-color);
+        }
+        
+        main {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .drop-area {
+            border: 2px dashed var(--accent-color);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .drop-area.dragover {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-color: var(--accent-hover);
+        }
+        
+        .drop-area p {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .console {
+            background-color: black;
+            color: #4CAF50;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 5px;
+            height: 250px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            background-color: var(--panel-color);
+            padding: 1rem;
+            border-radius: 5px;
+        }
+        
+        button {
+            padding: 0.5rem 1rem;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        footer {
+            background-color: var(--panel-color);
+            text-align: center;
+            padding: 1rem;
+            margin-top: auto;
+        }
+        
+        .error {
+            color: var(--error-color);
+        }
+        
+        .success {
+            color: var(--accent-color);
+        }
+        
+        .key-display {
+            word-break: break-all;
+            font-family: monospace;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>File Encryption App</h1>
+    </header>
+    
+    <main>
+        <div id="dropArea" class="drop-area">
+            <p>Drag & drop your file here or click to select</p>
+            <p id="currentFile"></p>
+            <input type="file" id="fileInput">
+        </div>
+        
+        <div id="console" class="console"></div>
+        
+        <div class="controls">
+            <button id="generateKeyBtn">Generate New Key</button>
+            <button id="saveKeyBtn">Save Key</button>
+            <button id="loadKeyBtn">Load Key</button>
+            <button id="encryptBtn" disabled>Encrypt File</button>
+            <button id="decryptBtn" disabled>Decrypt File</button>
+        </div>
+    </main>
+    
+    <footer>
+        <p>Secure File Encryption using AES-128</p>
+    </footer>
+    
+    <script>
+        // Constants
+        const ALGORITHM = 'AES-GCM';
+        const KEY_SIZE = 128;
+        
+        // DOM Elements
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const currentFileText = document.getElementById('currentFile');
+        const consoleArea = document.getElementById('console');
+        const generateKeyBtn = document.getElementById('generateKeyBtn');
+        const saveKeyBtn = document.getElementById('saveKeyBtn');
+        const loadKeyBtn = document.getElementById('loadKeyBtn');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const decryptBtn = document.getElementById('decryptBtn');
+        
+        // State variables
+        let currentFile = null;
+        let encryptionKey = null;
+        
+        // Initialize
+        init();
+        
+        function init() {
+            // Generate initial key
+            generateKey().then(key => {
+                encryptionKey = key;
+                logToConsole(`Generated Key: ${arrayBufferToBase64(key)}`);
+            });
+            
+            // Event listeners
+            dropArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Drag and drop events
+            dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropArea.classList.add('dragover');
+            });
+            
+            dropArea.addEventListener('dragleave', () => {
+                dropArea.classList.remove('dragover');
+            });
+            
+            dropArea.addEventListener('drop', handleFileDrop);
+            
+            // Button event listeners
+            generateKeyBtn.addEventListener('click', handleGenerateKey);
+            saveKeyBtn.addEventListener('click', handleSaveKey);
+            loadKeyBtn.addEventListener('click', handleLoadKey);
+            encryptBtn.addEventListener('click', handleEncryptFile);
+            decryptBtn.addEventListener('click', handleDecryptFile);
+        }
+        
+        // Event Handlers
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                setCurrentFile(file);
+            }
+        }
+        
+        function handleFileDrop(e) {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.items) {
+                if (e.dataTransfer.items[0].kind === 'file') {
+                    const file = e.dataTransfer.items[0].getAsFile();
+                    setCurrentFile(file);
+                }
+            } else {
+                const file = e.dataTransfer.files[0];
+                setCurrentFile(file);
+            }
+        }
+        
+        function setCurrentFile(file) {
+            currentFile = file;
+            currentFileText.textContent = `Selected: ${file.name}`;
+            encryptBtn.disabled = false;
+            
+            // Only enable decrypt for .enc files
+            decryptBtn.disabled = !file.name.endsWith('.enc');
+            
+            logToConsole(`File selected: ${file.name}`);
+        }
+        
+        async function handleGenerateKey() {
+            try {
+                encryptionKey = await generateKey();
+                logToConsole(`New Key Generated: ${arrayBufferToBase64(encryptionKey)}`);
+            } catch (error) {
+                logError(`Error generating key: ${error.message}`);
+            }
+        }
+        
+        function handleSaveKey() {
+            if (!encryptionKey) {
+                logError('No key to save');
+                return;
+            }
+            
+            try {
+                const keyStr = arrayBufferToBase64(encryptionKey);
+                const blob = new Blob([keyStr], { type: 'application/octet-stream' });
+                saveFile(blob, 'secret.key');
+                logToConsole('Key saved successfully');
+            } catch (error) {
+                logError(`Error saving key: ${error.message}`);
+            }
+        }
+        
+        function handleLoadKey() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const keyStr = await readFileAsText(file);
+                    encryptionKey = await base64ToArrayBuffer(keyStr.trim());
+                    logToConsole('Key loaded successfully');
+                } catch (error) {
+                    logError(`Error loading key: ${error.message}`);
+                }
+            };
+            
+            input.click();
+        }
+        
+        async function handleEncryptFile() {
+            if (!currentFile || !encryptionKey) {
+                logError('Please select a file and ensure you have a key');
+                return;
+            }
+            
+            try {
+                const fileData = await readFileAsArrayBuffer(currentFile);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encryptedData = await encryptData(fileData, encryptionKey, iv);
+                
+                // Prepend IV to encrypted data
+                const resultBuffer = new Uint8Array(iv.length + encryptedData.byteLength);
+                resultBuffer.set(iv, 0);
+                resultBuffer.set(new Uint8Array(encryptedData), iv.length);
+                
+                // Create and save the encrypted file
+                const blob = new Blob([resultBuffer], { type: 'application/octet-stream' });
+                saveFile(blob, `${currentFile.name}.enc`);
+                
+                logToConsole('File encrypted successfully');
+            } catch (error) {
+                logError(`Encryption error: ${error.message}`);
+            }
+        }
+        
+        async function handleDecryptFile() {
+            if (!currentFile || !encryptionKey) {
+                logError('Please select a file and ensure you have a key');
+                return;
+            }
+            
+            if (!currentFile.name.endsWith('.enc')) {
+                logError('Please select a valid encrypted file (.enc)');
+                return;
+            }
+            
+            try {
+                const fileData = await readFileAsArrayBuffer(currentFile);
+                
+                // Extract IV from the beginning of the file
+                const iv = new Uint8Array(fileData.slice(0, 12));
+                const encryptedData = new Uint8Array(fileData.slice(12));
+                
+                const decryptedData = await decryptData(encryptedData, encryptionKey, iv);
+                
+                // Create and save the decrypted file
+                const blob = new Blob([decryptedData], { type: 'application/octet-stream' });
+                const outputFileName = `decrypted_${currentFile.name.replace('.enc', '')}`;
+                saveFile(blob, outputFileName);
+                
+                logToConsole('File decrypted successfully');
+            } catch (error) {
+                logError(`Decryption error: ${error.message}`);
+            }
+        }
+        
+        // Cryptography Functions
+        async function generateKey() {
+            const key = await crypto.subtle.generateKey(
+                {
+                    name: ALGORITHM,
+                    length: KEY_SIZE
+                },
+                true,
+                ['encrypt', 'decrypt']
+            );
+            
+            return await crypto.subtle.exportKey('raw', key);
+        }
+        
+        async function encryptData(data, keyBuffer, iv) {
+            const key = await crypto.subtle.importKey(
+                'raw',
+                keyBuffer,
+                {
+                    name: ALGORITHM,
+                    length: KEY_SIZE
+                },
+                false,
+                ['encrypt']
+            );
+            
+            return await crypto.subtle.encrypt(
+                {
+                    name: ALGORITHM,
+                    iv: iv
+                },
+                key,
+                data
+            );
+        }
+        
+        async function decryptData(encryptedData, keyBuffer, iv) {
+            const key = await crypto.subtle.importKey(
+                'raw',
+                keyBuffer,
+                {
+                    name: ALGORITHM,
+                    length: KEY_SIZE
+                },
+                false,
+                ['decrypt']
+            );
+            
+            return await crypto.subtle.decrypt(
+                {
+                    name: ALGORITHM,
+                    iv: iv
+                },
+                key,
+                encryptedData
+            );
+        }
+        
+        // Utility Functions
+        function arrayBufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+        
+        async function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+        
+        function saveFile(blob, fileName) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function logToConsole(message, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logClass = isError ? 'error' : '';
+            consoleArea.innerHTML += `<div class="${logClass}">[${timestamp}] ${message}</div>`;
+            consoleArea.scrollTop = consoleArea.scrollHeight;
+        }
+        
+        function logError(message) {
+            logToConsole(message, true);
+        }
+    </script>
+</body>
+</html>
