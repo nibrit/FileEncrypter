@@ -6,12 +6,31 @@
     <title>C I P H E R</title>
     <style>
         :root {
-            --bg-color: #1E1E1E;
-            --panel-color: #323232;
-            --text-color: #E0E0E0;
-            --accent-color: #4CAF50;
-            --accent-hover: #3d8c40;
-            --error-color: #f44336;
+            --bg-color: #0a192f;
+            --panel-color: rgba(23, 42, 69, 0.8);
+            --text-color: #e6f1ff;
+            --accent-color: #64ffda;
+            --accent-hover: #4fd3b6;
+            --error-color: #ff6b6b;
+            --glass-blur: blur(10px);
+        }
+        
+        @keyframes matrix-background {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+        
+        @keyframes code-stream {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100vh);
+            }
         }
         
         body {
@@ -23,18 +42,55 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+        
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .matrix-stream {
+            position: absolute;
+            width: 20px;
+            height: 100vh;
+            background: linear-gradient(0deg, transparent, #0f0, #0f0);
+            opacity: 0.2;
+            animation: matrix-background 5s linear infinite;
+        }
+        
+        .code-line {
+            position: absolute;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            opacity: 0.5;
+            white-space: nowrap;
+            text-shadow: 0 0 5px #0f0;
+            animation: code-stream 10s linear infinite;
         }
         
         header {
             background-color: var(--panel-color);
             padding: 1rem;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
         }
         
         h1 {
             margin: 0;
             color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
         }
         
         main {
@@ -45,39 +101,47 @@
             max-width: 800px;
             margin: 0 auto;
             width: 100%;
+            position: relative;
+            z-index: 10;
         }
         
         .drop-area {
             border: 2px dashed var(--accent-color);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 2rem;
             text-align: center;
             margin-bottom: 1rem;
             transition: all 0.3s;
             cursor: pointer;
+            background: rgba(23, 42, 69, 0.6);
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
         
         .drop-area.dragover {
-            background-color: rgba(76, 175, 80, 0.1);
+            background-color: rgba(100, 255, 218, 0.1);
             border-color: var(--accent-hover);
         }
         
         .drop-area p {
             margin: 0;
             font-size: 1.2rem;
+            color: var(--text-color);
         }
         
         .console {
-            background-color: black;
-            color: #4CAF50;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #0f0;
             font-family: 'Courier New', monospace;
             padding: 1rem;
-            border-radius: 5px;
+            border-radius: 8px;
             height: 250px;
             overflow-y: auto;
             margin-bottom: 1rem;
             white-space: pre-wrap;
             font-size: 14px;
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid rgba(100, 255, 218, 0.2);
         }
         
         .controls {
@@ -86,27 +150,49 @@
             gap: 0.5rem;
             background-color: var(--panel-color);
             padding: 1rem;
-            border-radius: 5px;
+            border-radius: 8px;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
         
         button {
             padding: 0.5rem 1rem;
             background-color: var(--accent-color);
-            color: white;
+            color: var(--bg-color);
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
         }
         
         button:hover {
             background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: all 0.5s;
+        }
+        
+        button:hover:before {
+            left: 100%;
         }
         
         button:disabled {
-            background-color: #cccccc;
+            background-color: #4a4a4a;
             cursor: not-allowed;
+            opacity: 0.6;
         }
         
         #fileInput {
@@ -118,14 +204,18 @@
             text-align: center;
             padding: 1rem;
             margin-top: auto;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
         }
         
         .error {
             color: var(--error-color);
+            text-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
         }
         
         .success {
             color: var(--accent-color);
+            text-shadow: 0 0 5px rgba(100, 255, 218, 0.5);
         }
         
         .key-display {
@@ -135,6 +225,7 @@
             padding: 0.5rem;
             border-radius: 4px;
             margin-top: 0.5rem;
+            backdrop-filter: var(--glass-blur);
         }
         
         @media (max-width: 600px) {
@@ -149,6 +240,8 @@
     </style>
 </head>
 <body>
+    <div class="background-overlay" id="backgroundOverlay"></div>
+    
     <header>
         <h1>C I P H E R</h1>
     </header>
@@ -173,11 +266,12 @@
     
     <footer>
         <p>Secure File Encryption using AES-256<br><a href="https://www.instagram.com/_the_fragile_soul_/" target="_blank" rel="noopener noreferrer">
-  Follow me on IG
-</a></p>
+            Follow me on IG
+          </a></p>
     </footer>
     
     <script>
+        // Existing JavaScript code remains the same as in the previous version
         // Constants
         const ALGORITHM = 'AES-GCM';
         const KEY_SIZE = 128;
@@ -483,6 +577,51 @@
         function logError(message) {
             logToConsole(message, true);
         }
+        // Add background animation script
+        function createMatrixBackground() {
+            const overlay = document.getElementById('backgroundOverlay');
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const streamCount = Math.floor(screenWidth / 20);
+            
+            // Create matrix streams
+            for (let i = 0; i < streamCount; i++) {
+                const stream = document.createElement('div');
+                stream.classList.add('matrix-stream');
+                stream.style.left = `${i * 20}px`;
+                stream.style.animationDelay = `${Math.random() * 5}s`;
+                overlay.appendChild(stream);
+            }
+            
+            // Create random code lines
+            for (let i = 0; i < 50; i++) {
+                const codeLine = document.createElement('div');
+                codeLine.classList.add('code-line');
+                
+                // Generate random code-like text
+                const codeChars = ['0', '1', '<', '>', '/', '\\', '{', '}', '[', ']', '(', ')', 'if', 'else', 'while'];
+                codeLine.textContent = Array.from({length: Math.random() * 20}, () => 
+                    codeChars[Math.floor(Math.random() * codeChars.length)]
+                ).join('');
+                
+                // Randomize position and animation
+                codeLine.style.left = `${Math.random() * screenWidth}px`;
+                codeLine.style.top = `${-Math.random() * 1000}px`;
+                codeLine.style.animationDelay = `${Math.random() * 10}s`;
+                
+                overlay.appendChild(codeLine);
+            }
+        }
+        
+        // Initialize background on load
+        window.addEventListener('load', createMatrixBackground);
+        
+        // Regenerate background on window resize
+        window.addEventListener('resize', () => {
+            const overlay = document.getElementById('backgroundOverlay');
+            overlay.innerHTML = '';
+            createMatrixBackground();
+        });
     </script>
 </body>
 </html>
