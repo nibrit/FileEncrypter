@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CIPHER - Secure file encryption tool using AES-256 encryption">
     <title>C I P H E R</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
     <style>
         :root {
             --bg-color: #0a192f;
@@ -12,24 +14,46 @@
             --accent-color: #64ffda;
             --accent-hover: #4fd3b6;
             --error-color: #ff6b6b;
+            --warning-color: #ffd166;
             --glass-blur: blur(10px);
         }
         
-        @keyframes matrix-background {
-            0% {
-                transform: translateY(-100%);
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
             }
-            100% {
-                transform: translateY(100%);
+            50% {
+                transform: translateY(-20px);
             }
         }
         
-        @keyframes code-stream {
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.2;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes glow {
             0% {
-                transform: translateY(-100%);
+                text-shadow: 0 0 5px var(--accent-color), 0 0 10px var(--accent-color);
+            }
+            50% {
+                text-shadow: 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
             }
             100% {
-                transform: translateY(100vh);
+                text-shadow: 0 0 5px var(--accent-color), 0 0 10px var(--accent-color);
             }
         }
         
@@ -57,24 +81,62 @@
             overflow: hidden;
         }
         
-        .matrix-stream {
+        .particle {
             position: absolute;
-            width: 20px;
-            height: 100vh;
-            background: linear-gradient(0deg, transparent, #0f0, #0f0);
+            background-color: var(--accent-color);
+            border-radius: 50%;
             opacity: 0.2;
-            animation: matrix-background 5s linear infinite;
+            animation: float 15s infinite ease-in-out;
         }
         
-        .code-line {
+        .hexagon {
             position: absolute;
-            color: #0f0;
-            font-family: monospace;
-            font-size: 12px;
-            opacity: 0.5;
-            white-space: nowrap;
-            text-shadow: 0 0 5px #0f0;
-            animation: code-stream 10s linear infinite;
+            width: 60px;
+            height: 34.64px;
+            background-color: rgba(100, 255, 218, 0.1);
+            border-left: 1px solid var(--accent-color);
+            border-right: 1px solid var(--accent-color);
+            animation: pulse 8s infinite ease-in-out;
+        }
+        
+        .hexagon:before,
+        .hexagon:after {
+            content: "";
+            position: absolute;
+            width: 42.43px;
+            height: 42.43px;
+            background-color: inherit;
+            border-left: 1px solid var(--accent-color);
+            border-right: 1px solid var(--accent-color);
+            transform: rotate(45deg);
+        }
+        
+        .hexagon:before {
+            top: -21.21px;
+            left: 7.79px;
+        }
+        
+        .hexagon:after {
+            bottom: -21.21px;
+            left: 7.79px;
+        }
+        
+        .circle-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at center, rgba(100, 255, 218, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .orb {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(100, 255, 218, 0.2) 0%, transparent 70%);
+            filter: blur(20px);
+            animation: rotate 60s linear infinite;
         }
         
         header {
@@ -91,6 +153,9 @@
             margin: 0;
             color: var(--accent-color);
             text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+            animation: glow 2s ease-in-out infinite;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3em;
         }
         
         main {
@@ -121,12 +186,19 @@
         .drop-area.dragover {
             background-color: rgba(100, 255, 218, 0.1);
             border-color: var(--accent-hover);
+            transform: scale(1.02);
         }
         
         .drop-area p {
             margin: 0;
             font-size: 1.2rem;
             color: var(--text-color);
+        }
+        
+        .drop-area .file-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
         }
         
         .console {
@@ -142,6 +214,21 @@
             font-size: 14px;
             backdrop-filter: var(--glass-blur);
             border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .clear-console {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-decoration: underline;
+            margin-bottom: 0.5rem;
+            align-self: flex-end;
+        }
+        
+        .clear-console:hover {
+            color: var(--accent-color);
         }
         
         .controls {
@@ -199,6 +286,22 @@
             display: none;
         }
         
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
         footer {
             background-color: var(--panel-color);
             text-align: center;
@@ -211,6 +314,11 @@
         .error {
             color: var(--error-color);
             text-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+        }
+        
+        .warning {
+            color: var(--warning-color);
+            text-shadow: 0 0 5px rgba(255, 209, 102, 0.5);
         }
         
         .success {
@@ -228,6 +336,170 @@
             backdrop-filter: var(--glass-blur);
         }
         
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        
+        .file-info span {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--panel-color);
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-title {
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 1rem 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            color: var(--text-color);
+        }
+        
+        .password-input:focus {
+            outline: none;
+            border-color: var(--accent-hover);
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+        
+        .toggle-password:hover {
+            color: var(--accent-color);
+        }
+        
+        #keyStrength {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .settings-btn:hover {
+            color: var(--accent-color);
+            transform: rotate(30deg);
+        }
+
+        .about-section {
+            margin-top: 1rem;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        #offlineStatus {
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            background-color: rgba(255, 0, 0, 0.2);
+            display: none;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .contact-info {
+            margin-top: 1rem;
+        }
+
+        .contact-info p {
+            margin: 0.5rem 0;
+        }
+
+        .contact-info a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 600px) {
             .controls {
                 flex-direction: column;
@@ -236,45 +508,192 @@
             button {
                 width: 100%;
             }
+            
+            .settings-btn {
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+        }
+        .matrix-stream {
+        position: absolute;
+        width: 1px;
+        height: 100vh;
+        background: linear-gradient(to bottom, 
+            rgba(100, 255, 218, 0) 0%,
+            rgba(100, 255, 218, 0.5) 50%, 
+            rgba(100, 255, 218, 0) 100%);
+        animation: rain 8s linear infinite;
+        opacity: 0.3;
+    }
+    
+    .code-line {
+        position: absolute;
+        color: var(--accent-color);
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        text-shadow: 0 0 5px rgba(100, 255, 218, 0.5);
+        animation: codefall 12s linear infinite;
+        opacity: 0.7;
+        z-index: -1;
+    }
+    
+    @keyframes rain {
+        0% {
+            height: 0;
+            top: -100px;
+        }
+        50% {
+            height: 100vh;
+        }
+        100% {
+            height: 0;
+            top: 100vh;
+        }
+    }
+    
+    @keyframes codefall {
+        0% {
+            transform: translateY(-100px);
+            opacity: 0;
+        }
+        10% {
+            opacity: 0.7;
+        }
+        90% {
+            opacity: 0.7;
+        }
+        100% {
+            transform: translateY(100vh);
+            opacity: 0;
         }
     </style>
 </head>
 <body>
-    <div class="background-overlay" id="backgroundOverlay"></div>
+    <div class="background-overlay" id="backgroundOverlay">
+        <div class="circle-grid"></div>
+        <div class="orb" style="top: 20%; left: 10%;"></div>
+        <div class="orb" style="top: 70%; left: 80%;"></div>
+    </div>
     
     <header>
-        <h1>... C I P H E R ...</h1>
+        <h1>C I P H E R</h1>
+        <button class="settings-btn" id="settingsBtn" title="Settings">⚙️</button>
     </header>
+    
+    <div id="offlineStatus">You are currently offline. Some features may be limited.</div>
     
     <main>
         <div id="dropArea" class="drop-area">
+            <div class="file-icon">📁</div>
             <p>Drag & drop your file here or click to select</p>
             <p id="currentFile"></p>
             <input type="file" id="fileInput">
         </div>
         
+        <button class="clear-console" id="clearConsoleBtn">Clear console</button>
         <div id="console" class="console"></div>
         
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
         <div class="controls">
-            <button id="generateKeyBtn">Generate New Key</button>
-            <button id="saveKeyBtn">Save Key</button>
-            <button id="loadKeyBtn">Load Key</button>
-            <button id="encryptBtn" disabled>Encrypt File</button>
-            <button id="decryptBtn" disabled>Decrypt File</button>
+            <button id="generateKeyBtn" title="Generate a new encryption key">Generate New Key</button>
+            <button id="saveKeyBtn" title="Save your encryption key to a file">Save Key</button>
+            <button id="loadKeyBtn" title="Load an encryption key from a file">Load Key</button>
+            <button id="passwordKeyBtn" title="Create a key from a password">Password Key</button>
+            <button id="encryptBtn" disabled title="Encrypt the selected file">Encrypt File</button>
+            <button id="decryptBtn" disabled title="Decrypt the selected file">Decrypt File</button>
         </div>
     </main>
     
     <footer>
-        <p>Secure File Encryption using AES-256<br><a href="https://www.linkedin.com/in/nibrit-berlin-b-2bb39b25a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer">
+        <p>Secure File Encryption using AES-256<br>
+        <a href="https://www.linkedin.com/in/nibrit-berlin-b-2bb39b25a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer">
             Follow me on LinkedIn
-          </a></p>
+        </a></p>
+        <p><small>Version 1.2.0 | <a href="#" id="aboutLink">About</a></small></p>
     </footer>
     
+    <!-- Password Modal -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Generate Key from Password</h3>
+            <p>Enter a strong password to generate your encryption key:</p>
+            <div class="password-container">
+                <input type="password" id="passwordInput" class="password-input" placeholder="Enter password">
+                <button class="toggle-password" id="togglePassword">👁️</button>
+            </div>
+            <div id="keyStrength"></div>
+            <div class="modal-buttons">
+                <button id="cancelPasswordBtn">Cancel</button>
+                <button id="confirmPasswordBtn">Generate Key</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Settings</h3>
+            
+            <div class="tab-container">
+                <div class="tab active" data-tab="settings">Settings</div>
+                <div class="tab" data-tab="about">About</div>
+                <div class="tab" data-tab="contact">Contact</div>
+            </div>
+            
+            <div class="tab-content active" id="settingsTab">
+                <p>Encryption Algorithm: AES-GCM</p>
+                <p>Key Size:
+                    <select id="keySizeSelect">
+                        <option value="128">128-bit</option>
+                        <option value="192">192-bit</option>
+                        <option value="256" selected>256-bit</option>
+                    </select>
+                </p>
+                <div class="modal-buttons">
+                    <button id="closeSettingsBtn">Close</button>
+                    <button id="saveSettingsBtn">Save</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="aboutTab">
+                <div class="about-section">
+                    <p><strong>Developer:</strong> B. Nibrit Berlin</p>
+                    <p>CIPHER is a client-side secure file encryption tool that uses the Web Crypto API to provide strong encryption without sending your data to any server.</p>
+                    <p><strong>Features:</strong></p>
+                    <ul>
+                        <li>AES-256 encryption (military-grade)</li>
+                        <li>Completely local - your files never leave your device</li>
+                        <li>Password-based key derivation</li>
+                        <li>Works offline</li>
+                    </ul>
+                    <p><strong>Security Note:</strong> Always keep your encryption keys safe. If you lose your key, you cannot recover your encrypted files.</p>
+                </div>
+                <div class="modal-buttons">
+                    <button id="closeAboutBtn">Close</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="contactTab">
+                <div class="contact-info">
+                    <p><strong>Contact Developer:</strong></p>
+                    <p>Email: <a href="mailto:cipherhelpline@gmail.com">cipherhelpline@gmail.com</a></p>
+                    <p>LinkedIn: <a href="https://www.linkedin.com/in/nibrit-berlin-b-2bb39b25a" target="_blank">Nibrit Berlin</a></p>
+                    <p>For support or feature requests, please contact me via email.</p>
+                </div>
+                <div class="modal-buttons">
+                    <button id="closeContactBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script>
-        // Existing JavaScript code remains the same as in the previous version
         // Constants
         const ALGORITHM = 'AES-GCM';
-        const KEY_SIZE = 128;
+        let KEY_SIZE = 256; // Default to 256-bit
         
         // DOM Elements
         const dropArea = document.getElementById('dropArea');
@@ -284,8 +703,31 @@
         const generateKeyBtn = document.getElementById('generateKeyBtn');
         const saveKeyBtn = document.getElementById('saveKeyBtn');
         const loadKeyBtn = document.getElementById('loadKeyBtn');
+        const passwordKeyBtn = document.getElementById('passwordKeyBtn');
         const encryptBtn = document.getElementById('encryptBtn');
         const decryptBtn = document.getElementById('decryptBtn');
+        const clearConsoleBtn = document.getElementById('clearConsoleBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const aboutLink = document.getElementById('aboutLink');
+        
+        // Modal elements
+        const passwordModal = document.getElementById('passwordModal');
+        const passwordInput = document.getElementById('passwordInput');
+        const togglePassword = document.getElementById('togglePassword');
+        const keyStrength = document.getElementById('keyStrength');
+        const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+        const confirmPasswordBtn = document.getElementById('confirmPasswordBtn');
+        
+        const settingsModal = document.getElementById('settingsModal');
+        const keySizeSelect = document.getElementById('keySizeSelect');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const closeAboutBtn = document.getElementById('closeAboutBtn');
+        const closeContactBtn = document.getElementById('closeContactBtn');
+        
+        // Tab elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
         
         // State variables
         let currentFile = null;
@@ -300,6 +742,11 @@
                 encryptionKey = key;
                 logToConsole(`Generated Key: ${arrayBufferToBase64(key)}`);
             });
+            
+            // Check online status
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus();
             
             // Event listeners
             dropArea.addEventListener('click', () => fileInput.click());
@@ -321,8 +768,108 @@
             generateKeyBtn.addEventListener('click', handleGenerateKey);
             saveKeyBtn.addEventListener('click', handleSaveKey);
             loadKeyBtn.addEventListener('click', handleLoadKey);
+            passwordKeyBtn.addEventListener('click', () => passwordModal.style.display = 'flex');
             encryptBtn.addEventListener('click', handleEncryptFile);
             decryptBtn.addEventListener('click', handleDecryptFile);
+            clearConsoleBtn.addEventListener('click', () => consoleArea.innerHTML = '');
+            
+            // Password modal events
+            togglePassword.addEventListener('click', togglePasswordVisibility);
+            passwordInput.addEventListener('input', checkPasswordStrength);
+            cancelPasswordBtn.addEventListener('click', () => passwordModal.style.display = 'none');
+            confirmPasswordBtn.addEventListener('click', handlePasswordKeyGeneration);
+            
+            // Settings modal events
+            settingsBtn.addEventListener('click', () => {
+                settingsModal.style.display = 'flex';
+                showTab('settings');
+            });
+            aboutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                settingsModal.style.display = 'flex';
+                showTab('about');
+            });
+            closeSettingsBtn.addEventListener('click', () => settingsModal.style.display = 'none');
+            saveSettingsBtn.addEventListener('click', handleSaveSettings);
+            closeAboutBtn.addEventListener('click', () => settingsModal.style.display = 'none');
+            closeContactBtn.addEventListener('click', () => settingsModal.style.display = 'none');
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => showTab(tab.dataset.tab));
+            });
+            
+            // Create background effects
+            createBackgroundEffects();
+        }
+        
+        function showTab(tabName) {
+            tabs.forEach(tab => {
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            tabContents.forEach(content => {
+                if (content.id === `${tabName}Tab`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+        
+        function updateOnlineStatus() {
+            const offlineStatus = document.getElementById('offlineStatus');
+            if (!navigator.onLine) {
+                offlineStatus.style.display = 'block';
+                logToConsole('Warning: You are offline. Some features may be limited.', false, 'warning');
+            } else {
+                offlineStatus.style.display = 'none';
+            }
+        }
+        
+        function createBackgroundEffects() {
+            const overlay = document.getElementById('backgroundOverlay');
+            
+            // Create particles
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 1px and 5px
+                const size = Math.random() * 4 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Random animation duration and delay
+                particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                
+                overlay.appendChild(particle);
+            }
+            
+            // Create hexagons
+            for (let i = 0; i < 10; i++) {
+                const hexagon = document.createElement('div');
+                hexagon.classList.add('hexagon');
+                
+                // Random position
+                hexagon.style.left = `${Math.random() * 100}%`;
+                hexagon.style.top = `${Math.random() * 100}%`;
+                
+                // Random animation duration and delay
+                hexagon.style.animationDuration = `${Math.random() * 10 + 5}s`;
+                hexagon.style.animationDelay = `${Math.random() * 5}s`;
+                
+                overlay.appendChild(hexagon);
+            }
         }
         
         // Event Handlers
@@ -402,6 +949,125 @@
             };
             
             input.click();
+        }
+        
+        function togglePasswordVisibility() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePassword.textContent = '👁️';
+            } else {
+                passwordInput.type = 'password';
+                togglePassword.textContent = '👁️';
+            }
+        }
+        
+        function checkPasswordStrength() {
+            const password = passwordInput.value;
+            let strength = 0;
+            let message = '';
+            let color = '';
+            
+            // Check password length
+            if (password.length === 0) {
+                message = '';
+            } else if (password.length < 8) {
+                message = 'Very Weak (min 8 characters)';
+                color = 'var(--error-color)';
+            } else {
+                strength++;
+                
+                // Check for mixed case
+                if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+                
+                // Check for numbers
+                if (/\d/.test(password)) strength++;
+                
+                // Check for special chars
+                if (/[^a-zA-Z0-9]/.test(password)) strength++;
+                
+                switch(strength) {
+                    case 1:
+                        message = 'Weak';
+                        color = 'var(--error-color)';
+                        break;
+                    case 2:
+                        message = 'Moderate';
+                        color = 'var(--warning-color)';
+                        break;
+                    case 3:
+                        message = 'Strong';
+                        color = 'var(--accent-color)';
+                        break;
+                    case 4:
+                        message = 'Very Strong';
+                        color = 'var(--accent-hover)';
+                        break;
+                }
+            }
+            
+            keyStrength.textContent = message;
+            keyStrength.style.color = color;
+        }
+        
+        async function handlePasswordKeyGeneration() {
+            const password = passwordInput.value;
+            
+            if (!password) {
+                logError('Please enter a password');
+                return;
+            }
+            
+            if (password.length < 8) {
+                logError('Password should be at least 8 characters long');
+                return;
+            }
+            
+            try {
+                // Convert password to ArrayBuffer
+                const encoder = new TextEncoder();
+                const passwordBuffer = encoder.encode(password);
+                
+                // Generate salt
+                const salt = crypto.getRandomValues(new Uint8Array(16));
+                
+                // Derive key from password
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    passwordBuffer,
+                    { name: 'PBKDF2' },
+                    false,
+                    ['deriveBits', 'deriveKey']
+                );
+                
+                const derivedKey = await crypto.subtle.deriveKey(
+                    {
+                        name: 'PBKDF2',
+                        salt: salt,
+                        iterations: 100000,
+                        hash: 'SHA-256'
+                    },
+                    keyMaterial,
+                    { name: ALGORITHM, length: KEY_SIZE },
+                    true,
+                    ['encrypt', 'decrypt']
+                );
+                
+                // Export the raw key
+                encryptionKey = await crypto.subtle.exportKey('raw', derivedKey);
+                
+                logToConsole('Key generated from password successfully');
+                passwordModal.style.display = 'none';
+                passwordInput.value = '';
+                keyStrength.textContent = '';
+            } catch (error) {
+                logError(`Error generating key from password: ${error.message}`);
+            }
+        }
+        
+        function handleSaveSettings() {
+            KEY_SIZE = parseInt(keySizeSelect.value);
+            logToConsole(`Settings saved. Key size set to ${KEY_SIZE}-bit.`);
+            settingsModal.style.display = 'none';
         }
         
         async function handleEncryptFile() {
