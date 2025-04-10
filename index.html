@@ -646,9 +646,84 @@
                 right: 1rem;
             }
         }
+        /* Dark mode toggle styling */
+.dark-mode-toggle {
+  position: absolute;
+  top: 25px;
+  right: 65px; /* changed from 20px to 80px */
+  z-index: 800;
+}
+
+
+/* Switch style (iOS-like) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 22px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 25px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 10px;
+  width: 10px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.container.dark-mode,
+button.dark-mode,
+input.dark-mode,
+textarea.dark-mode {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+  border-color: #444 !important;
+}
+
     </style>
 </head>
 <body>
+    <div class="dark-mode-toggle">
+        <label class="switch">
+          <input type="checkbox" id="darkModeSwitch">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      
     <div class="background-overlay" id="backgroundOverlay">
         <div class="circle-grid"></div>
         <div class="orb" style="top: 20%; left: 10%;"></div>
@@ -1367,6 +1442,34 @@
             overlay.innerHTML = '';
             createMatrixBackground();
         });
+        const darkModeSwitch = document.getElementById("darkModeSwitch");
+
+// Load theme from localStorage
+if (localStorage.getItem("dark-mode") === "enabled") {
+  document.body.classList.add("dark-mode");
+  darkModeSwitch.checked = true;
+  toggleElementsDark(true);
+}
+
+darkModeSwitch.addEventListener("change", function () {
+  if (this.checked) {
+    document.body.classList.add("dark-mode");
+    localStorage.setItem("dark-mode", "enabled");
+    toggleElementsDark(true);
+  } else {
+    document.body.classList.remove("dark-mode");
+    localStorage.setItem("dark-mode", "disabled");
+    toggleElementsDark(false);
+  }
+});
+
+function toggleElementsDark(enable) {
+  const darkElements = document.querySelectorAll(".container, button, input, textarea");
+  darkElements.forEach(el => {
+    el.classList.toggle("dark-mode", enable);
+  });
+}
+
     </script>
 </body>
 </html>
