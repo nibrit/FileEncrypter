@@ -156,6 +156,7 @@
             animation: glow 2s ease-in-out infinite;
             font-family: 'Courier New', monospace;
             letter-spacing: 0.3em;
+            font-size: clamp(1.2rem, 5vw, 2rem); /* Responsive font size */
         }
         
         main {
@@ -168,12 +169,13 @@
             width: 100%;
             position: relative;
             z-index: 10;
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
         
         .drop-area {
             border: 2px dashed var(--accent-color);
             border-radius: 12px;
-            padding: 2rem;
+            padding: 2rem 1rem; /* Reduced horizontal padding for mobile */
             text-align: center;
             margin-bottom: 1rem;
             transition: all 0.3s;
@@ -181,6 +183,8 @@
             background: rgba(23, 42, 69, 0.6);
             backdrop-filter: var(--glass-blur);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
         
         .drop-area.dragover {
@@ -191,12 +195,13 @@
         
         .drop-area p {
             margin: 0;
-            font-size: 1.2rem;
+            font-size: clamp(0.9rem, 3vw, 1.2rem); /* Responsive font size */
             color: var(--text-color);
+            word-break: break-word; /* Allow text to break for long file names */
         }
         
         .drop-area .file-icon {
-            font-size: 3rem;
+            font-size: clamp(2rem, 8vw, 3rem); /* Responsive icon size */
             margin-bottom: 1rem;
             color: var(--accent-color);
         }
@@ -207,13 +212,15 @@
             font-family: 'Courier New', monospace;
             padding: 1rem;
             border-radius: 8px;
-            height: 250px;
+            height: 200px; /* Reduced height for mobile */
             overflow-y: auto;
             margin-bottom: 1rem;
             white-space: pre-wrap;
-            font-size: 14px;
+            font-size: 12px; /* Smaller font for mobile */
             backdrop-filter: var(--glass-blur);
             border: 1px solid rgba(100, 255, 218, 0.2);
+            width: 100%;
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
         
         .clear-console {
@@ -233,17 +240,19 @@
         
         .controls {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column; /* Changed to column for mobile */
             gap: 0.5rem;
             background-color: var(--panel-color);
             padding: 1rem;
             border-radius: 8px;
             backdrop-filter: var(--glass-blur);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
         
         button {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 0.5rem; /* Increased vertical padding */
             background-color: var(--accent-color);
             color: var(--bg-color);
             border: none;
@@ -253,6 +262,9 @@
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
+            width: 100%; /* Full width for mobile */
+            font-size: 0.9rem; /* Slightly smaller for mobile */
+            margin: 0; /* Reset margin */
         }
         
         button:hover {
@@ -292,6 +304,7 @@
             border-radius: 4px;
             margin: 1rem 0;
             display: none;
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
         
         .progress-bar {
@@ -309,6 +322,16 @@
             margin-top: auto;
             backdrop-filter: var(--glass-blur);
             box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem; /* Slightly smaller for mobile */
+        }
+        
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
         }
         
         .error {
@@ -334,6 +357,7 @@
             border-radius: 4px;
             margin-top: 0.5rem;
             backdrop-filter: var(--glass-blur);
+            font-size: 0.8rem; /* Smaller for mobile */
         }
         
         .file-info {
@@ -343,11 +367,15 @@
             padding: 0.5rem;
             border-radius: 4px;
             margin-top: 0.5rem;
+            width: 100%;
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
         
         .file-info span {
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap; /* Allow wrapping for small screens */
+            font-size: 0.9rem; /* Slightly smaller for mobile */
         }
         
         .modal {
@@ -365,34 +393,45 @@
         
         .modal-content {
             background-color: var(--panel-color);
-            padding: 2rem;
+            padding: 1.5rem 1rem; /* Reduced horizontal padding for mobile */
             border-radius: 8px;
             max-width: 500px;
             width: 90%;
             backdrop-filter: var(--glass-blur);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-height: 90vh; /* Limit height on mobile */
+            overflow-y: auto; /* Allow scrolling if content is too tall */
         }
         
         .modal-title {
             color: var(--accent-color);
             margin-top: 0;
+            font-size: clamp(1.2rem, 5vw, 1.5rem); /* Responsive font size */
         }
         
         .modal-buttons {
             display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
+            justify-content: space-between; /* Changed to space-between for mobile */
+            gap: 0.5rem; /* Reduced gap for mobile */
             margin-top: 1rem;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+        
+        .modal-buttons button {
+            flex: 1; /* Make buttons share available space equally */
+            min-width: 120px; /* Ensure buttons have a minimum width */
         }
         
         .password-input {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.75rem 0.5rem; /* Increased vertical padding for touch targets */
             margin: 1rem 0;
             background-color: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--accent-color);
             border-radius: 4px;
             color: var(--text-color);
+            box-sizing: border-box; /* Add this to ensure padding is included in width */
+            font-size: 16px; /* Prevent auto-zoom on mobile */
         }
         
         .password-input:focus {
@@ -403,6 +442,7 @@
         
         .password-container {
             position: relative;
+            width: 100%;
         }
         
         .toggle-password {
@@ -414,6 +454,8 @@
             border: none;
             color: var(--text-color);
             cursor: pointer;
+            width: auto; /* Override the 100% width from button */
+            padding: 0.5rem;
         }
         
         .toggle-password:hover {
@@ -435,6 +477,8 @@
             font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s;
+            width: auto; /* Override the 100% width from button */
+            padding: 0.3rem;
         }
 
         .settings-btn:hover {
@@ -447,6 +491,10 @@
             text-align: left;
             font-size: 0.9rem;
         }
+        
+        .about-section ul {
+            padding-left: 1.2rem; /* Reduced padding for mobile */
+        }
 
         #offlineStatus {
             padding: 0.3rem 0.5rem;
@@ -455,12 +503,16 @@
             display: none;
             margin-bottom: 0.5rem;
             text-align: center;
+            width: 100%;
+            box-sizing: border-box; /* Add this to include padding in width calculation */
         }
 
         .tab-container {
             display: flex;
             border-bottom: 1px solid var(--accent-color);
             margin-bottom: 1rem;
+            overflow-x: auto; /* Allow scrolling for many tabs on mobile */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
 
         .tab {
@@ -468,6 +520,7 @@
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.3s;
+            white-space: nowrap; /* Prevent tab text from wrapping */
         }
 
         .tab.active {
@@ -489,6 +542,7 @@
 
         .contact-info p {
             margin: 0.5rem 0;
+            word-break: break-word; /* Allow long emails to wrap */
         }
 
         .contact-info a {
@@ -499,72 +553,98 @@
         .contact-info a:hover {
             text-decoration: underline;
         }
-
-        @media (max-width: 600px) {
+        
+        .matrix-stream {
+            position: absolute;
+            width: 1px;
+            height: 100vh;
+            background: linear-gradient(to bottom, 
+                rgba(100, 255, 218, 0) 0%,
+                rgba(100, 255, 218, 0.5) 50%, 
+                rgba(100, 255, 218, 0) 100%);
+            animation: rain 8s linear infinite;
+            opacity: 0.3;
+        }
+        
+        .code-line {
+            position: absolute;
+            color: var(--accent-color);
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-shadow: 0 0 5px rgba(100, 255, 218, 0.5);
+            animation: codefall 12s linear infinite;
+            opacity: 0.7;
+            z-index: -1;
+        }
+        
+        @keyframes rain {
+            0% {
+                height: 0;
+                top: -100px;
+            }
+            50% {
+                height: 100vh;
+            }
+            100% {
+                height: 0;
+                top: 100vh;
+            }
+        }
+        
+        @keyframes codefall {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+        
+        /* Desktop Layout (min-width: 768px) */
+        @media (min-width: 768px) {
             .controls {
-                flex-direction: column;
+                flex-direction: row;
+                flex-wrap: wrap;
             }
             
             button {
-                width: 100%;
+                width: auto;
+                font-size: 1rem;
+            }
+            
+            .modal-content {
+                padding: 2rem;
+            }
+            
+            .modal-buttons {
+                justify-content: flex-end;
+            }
+            
+            .console {
+                height: 250px;
+                font-size: 14px;
+            }
+            
+            .drop-area {
+                padding: 2rem;
+            }
+            
+            .drop-area p {
+                font-size: 1.2rem;
             }
             
             .settings-btn {
-                top: 0.5rem;
-                right: 0.5rem;
+                top: 1rem;
+                right: 1rem;
             }
-        }
-        .matrix-stream {
-        position: absolute;
-        width: 1px;
-        height: 100vh;
-        background: linear-gradient(to bottom, 
-            rgba(100, 255, 218, 0) 0%,
-            rgba(100, 255, 218, 0.5) 50%, 
-            rgba(100, 255, 218, 0) 100%);
-        animation: rain 8s linear infinite;
-        opacity: 0.3;
-    }
-    
-    .code-line {
-        position: absolute;
-        color: var(--accent-color);
-        font-family: 'Courier New', monospace;
-        font-size: 12px;
-        text-shadow: 0 0 5px rgba(100, 255, 218, 0.5);
-        animation: codefall 12s linear infinite;
-        opacity: 0.7;
-        z-index: -1;
-    }
-    
-    @keyframes rain {
-        0% {
-            height: 0;
-            top: -100px;
-        }
-        50% {
-            height: 100vh;
-        }
-        100% {
-            height: 0;
-            top: 100vh;
-        }
-    }
-    
-    @keyframes codefall {
-        0% {
-            transform: translateY(-100px);
-            opacity: 0;
-        }
-        10% {
-            opacity: 0.7;
-        }
-        90% {
-            opacity: 0.7;
-        }
-        100% {
-            transform: translateY(100vh);
-            opacity: 0;
         }
     </style>
 </head>
@@ -689,7 +769,6 @@
             </div>
         </div>
     </div>
-    
     <script>
         // Constants
         const ALGORITHM = 'AES-GCM';
@@ -1291,3 +1370,4 @@
     </script>
 </body>
 </html>
+    
