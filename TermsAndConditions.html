@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Welcome to CIPHER</title>
+  <style>
+    :root {
+      --bg-color: #0a192f;
+      --text-color: #e6f1ff;
+      --accent-color: #64ffda;
+      --accent-hover: #4fd3b6;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .matrix-stream {
+      position: absolute;
+      width: 1px;
+      height: 100vh;
+      background: linear-gradient(to bottom, rgba(100, 255, 218, 0) 0%, rgba(100, 255, 218, 0.5) 50%, rgba(100, 255, 218, 0) 100%);
+      animation: rain 8s linear infinite;
+      opacity: 0.3;
+    }
+
+    @keyframes rain {
+      0% { height: 0; top: -100px; }
+      50% { height: 100vh; }
+      100% { height: 0; top: 100vh; }
+    }
+
+    .welcome-box {
+      background: rgba(23, 42, 69, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(100, 255, 218, 0.2);
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: scale(0.95); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    h1 {
+      color: var(--accent-color);
+      font-family: 'Courier New', monospace;
+      text-shadow: 0 0 10px rgba(100, 255, 218, 0.6);
+    }
+
+    p {
+      line-height: 1.6;
+      font-size: 1rem;
+      margin: 1rem 0;
+    }
+
+    button {
+      background-color: var(--accent-color);
+      color: var(--bg-color);
+      border: none;
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(100, 255, 218, 0.4);
+    }
+
+    .terms-link {
+      color: var(--accent-color);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 1rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      display: none;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: rgba(17, 34, 64, 0.95);
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      color: var(--text-color);
+      box-shadow: 0 0 20px rgba(100, 255, 218, 0.4), 0 0 50px rgba(100, 255, 218, 0.2);
+      border: 1px solid var(--accent-color);
+      font-size: 0.95rem;
+      text-align: left;
+      animation: fadeIn 0.5s ease-out;
+      overflow-y: auto;
+      max-height: 80vh;
+    }
+
+    .modal-content h2 {
+      color: var(--accent-color);
+    }
+
+    .modal-content button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.5rem;
+      font-weight: bold;
+      border-radius: 6px;
+      background-color: var(--accent-color);
+      color: var(--bg-color);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(100, 255, 218, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .modal-content button:hover {
+      background-color: var(--accent-hover);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <audio id="clickSound" src="sci-click.mp3" preload="auto"></audio>
+
+  <div class="overlay" id="matrixBackground"></div>
+
+  <div class="welcome-box">
+    <h1>Welcome to CIPHER</h1>
+    <p>CIPHER uses AES-256 encryption to protect your files. It works entirely offline – your data never leaves your device.</p>
+    <p><strong>Important:</strong> If you lose your key, the encrypted files cannot be recovered.</p>
+    <p>By clicking "Agree & Continue", you confirm that you accept our terms.</p>
+    <button onclick="agreeAndContinue()">Agree & Continue</button>
+    <div class="terms-link" onclick="openTerms()">View Terms & Conditions</div>
+  </div>
+
+  <div class="modal" id="termsModal">
+    <div class="modal-content">
+      <h2>Terms & Conditions</h2>
+      <p>This tool is provided as-is without warranty. Use it at your own risk. The developer is not responsible for any data loss or misuse.</p>
+      <p>By using this tool, you acknowledge that:</p>
+      <ul>
+        <li>You understand how encryption works.</li>
+        <li>You take full responsibility for your encryption keys.</li>
+        <li>You will not use this tool for illegal activities.</li>
+      </ul>
+      <button onclick="closeTerms()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    function createMatrixEffect() {
+      const overlay = document.getElementById('matrixBackground');
+      const screenWidth = window.innerWidth;
+      const streamCount = Math.floor(screenWidth / 20);
+      for (let i = 0; i < streamCount; i++) {
+        const stream = document.createElement('div');
+        stream.classList.add('matrix-stream');
+        stream.style.left = `${i * 20}px`;
+        stream.style.animationDelay = `${Math.random() * 5}s`;
+        overlay.appendChild(stream);
+      }
+    }
+
+    function agreeAndContinue() {
+      const sound = document.getElementById('clickSound');
+      const button = document.querySelector("button");
+      sound.play();
+
+      button.style.boxShadow = "0 0 20px rgba(100,255,218,0.8), 0 0 60px rgba(100,255,218,0.4)";
+      button.style.transform = "scale(1.1)";
+
+      setTimeout(() => {
+        localStorage.setItem('cipherAgreement', 'true');
+        window.location.href = 'index.html';
+      }, 300);
+    }
+
+    function openTerms() {
+      document.getElementById('termsModal').style.display = 'flex';
+    }
+
+    function closeTerms() {
+      document.getElementById('termsModal').style.display = 'none';
+    }
+
+    window.addEventListener('load', createMatrixEffect);
+    window.addEventListener('resize', () => {
+      const overlay = document.getElementById('matrixBackground');
+      overlay.innerHTML = '';
+      createMatrixEffect();
+    });
+  </script>
+</body>
+</html>
